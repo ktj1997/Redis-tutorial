@@ -1,7 +1,14 @@
 package com.example.redistutorial.ratelimit.service
 
-interface RateLimitService {
-    fun isNeedToBlock(userId: String): Boolean
+import java.time.LocalDateTime
 
-    fun recordRequest(userId: String)
+interface RateLimitService {
+    companion object {
+        const val BLOCK_THRESHHOLD_MINUTE = 5
+        const val BLOCK_THRESHHOLD = 5
+    }
+
+    fun isNeedToBlock(userId: String, now: LocalDateTime): Boolean
+
+    fun recordRequest(userId: String, now: LocalDateTime)
 }

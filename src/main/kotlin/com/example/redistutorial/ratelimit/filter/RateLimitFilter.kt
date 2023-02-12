@@ -1,11 +1,11 @@
 package com.example.redistutorial.ratelimit.filter
 
 import com.example.redistutorial.ratelimit.service.RateLimitException
-import com.example.redistutorial.ratelimit.service.FixedWindowRateLimitService
+import com.example.redistutorial.ratelimit.service.RateLimitService
 import jakarta.servlet.FilterChain
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
-import java.lang.Exception
+import java.time.LocalDateTime
 import org.springframework.context.annotation.Profile
 import org.springframework.http.HttpStatus
 import org.springframework.http.MediaType
@@ -13,7 +13,7 @@ import org.springframework.web.filter.OncePerRequestFilter
 
 @Profile("ratelimit")
 class RateLimitFilter(
-    private val fixedWindowRateLimitService: FixedWindowRateLimitService
+    private val rateLimitService: RateLimitService
 ) : OncePerRequestFilter() {
     override fun doFilterInternal(
         request: HttpServletRequest,
@@ -21,19 +21,20 @@ class RateLimitFilter(
         filterChain: FilterChain
     ) {
         try {
+            val now = LocalDateTime.now()
             val userIdentifier = request.getHeader("X-UserId")
                 ?: throw IllegalArgumentException("No User Identifier Found")
-            if (fixedWindowRateLimitService.isNeedToBlock(userIdentifier)) {
+            if (rateLimitService.isNeedToBlock(userIdentifier, now)) {
                 throw IllegalArgumentException("Too Many Requests")
             }
-            fixedWindowRateLimitService.recordRequest(userIdentifier)
+            rateLimitService.recordRequest(userIdentifier, now)
             filterChain.doFilter(request, response)
         } catch (e: RateLimitException) {
-            sendErrorMessage(response as HttpServletResponse, HttpStatus.TOO_MANY_REQUESTS, e)
+            sendErrorMessage(response, HttpStatus.TOO_MANY_REQUESTS, e)
         } catch (e: IllegalArgumentException) {
-            sendErrorMessage(response as HttpServletResponse, HttpStatus.BAD_REQUEST, e)
+            sendErrorMessage(response, HttpStatus.BAD_REQUEST, e)
         } catch (e: Exception) {
-            sendErrorMessage(response as HttpServletResponse, HttpStatus.INTERNAL_SERVER_ERROR, e)
+            sendErrorMessage(response, HttpStatus.INTERNAL_SERVER_ERROR, e)
         }
     }
 

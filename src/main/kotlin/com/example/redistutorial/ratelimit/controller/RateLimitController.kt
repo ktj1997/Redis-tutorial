@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController
 class RateLimitController {
 
     @GetMapping("/hi")
-    fun hi(): String{
+    fun hi(): String {
         return "hi"
     }
 }
