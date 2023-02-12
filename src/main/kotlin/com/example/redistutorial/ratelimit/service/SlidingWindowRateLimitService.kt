@@ -20,7 +20,6 @@ class SlidingWindowRateLimitService(
         val minTimeStamp = getDoubleTimeStamp(now.minusMinutes(BLOCK_THRESHHOLD_MINUTE.toLong()))
 
         val recentRequestCount = zSet.count(key, minTimeStamp, maxTimeStamp) ?: 0
-        println(recentRequestCount)
 
         return recentRequestCount >= BLOCK_THRESHHOLD
     }
